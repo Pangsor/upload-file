@@ -1,7 +1,8 @@
 package com.walatech.service;
 
+import com.walatech.exception.ValidationException;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UploadFileService {
-    Object save(MultipartFile multipartFile,String bankName);
+    String save(MultipartFile multipartFile, String bankName) throws ValidationException;
 }

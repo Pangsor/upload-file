@@ -1,54 +1,64 @@
 package com.walatech.service.impl;
 
+import com.walatech.exception.ValidationException;
 import com.walatech.service.UploadFileService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class UploadFileServiceImpl implements UploadFileService {
     @Override
-    public Object save(MultipartFile file, String bankName) {
-        if(!file.getContentType().equals("text/plain")){
-            return ResponseEntity.badRequest().body("Only text file are allowed");
+    public String save(MultipartFile file, String bankName) throws ValidationException {
+        if(!Objects.equals(file.getContentType(), "text/plain")){
+            throw new ValidationException("Only text file are allowed");
         }
-        String getContentType = file.getContentType();
         try {
             String contents = new String(file.getBytes());
             String[] lines = contents.split("\\r?\\n");
-            System.out.println(lines);
-            StringBuilder sb = new StringBuilder();
             List<String> messages = new ArrayList<>();
+            List<String> result = new ArrayList<>();
+            String greeting = "Selamat Siang Rekan Bank " + bankName;
+            String header = "Mohon bantuan untuk Sign on pada envi berikut:";
             String MP = "",statusEnv = "";
             boolean addMesaage;
-            for(int i = 0; i < lines.length;i++){
-                String[] lines2 = lines[i].split(";");
+            for (String line : lines) {
+                String[] lines2 = line.split(";");
                 addMesaage = false;
-                for(int j = 0; j <lines2.length;j++){
-                    String vv = lines2[j];
-                    if(lines2[j].equalsIgnoreCase(bankName)){
+                for (int j = 0; j < lines2.length; j++) {
+                    if (lines2[j].equalsIgnoreCase(bankName)) {
                         addMesaage = true;
                     }
-                    if(j == 2){
+                    if (j == 2) {
                         MP = lines2[j];
                     }
-                    if(j == 4){
+                    if (j == 4) {
+                        if (!lines2[j].equalsIgnoreCase("OFFLINE")) {
+                            addMesaage = false;
+                        }
                         statusEnv = lines2[j];
                     }
                 }
-                if(addMesaage){
-                    messages.add("- Envi MP Port " + MP + " terpantau" + statusEnv);
+                if (addMesaage) {
+                    messages.add("- Envi MP Port " + MP + " terpantau " + statusEnv);
                 }
             }
-            System.out.println(messages);
-            return messages;
+            if(messages.size() > 0){
+                messages.add(0,greeting);
+                messages.add(1,header);
+                for(String msg: messages){
+                    System.out.println(msg);
+                }
+            }
+
+            return StringUtils.join(messages);
         }catch (IOException e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading file");
+            throw new ValidationException("INTERNAL_SERVER_ERROR");
         }
     }
 }
