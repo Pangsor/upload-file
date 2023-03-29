@@ -51,6 +51,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             if(messages.size() > 0){
                 messages.add(0,greeting);
                 messages.add(1,header);
+                messages.add("Terima Kasih");
                 for(String msg: messages){
                     System.out.println(msg);
                 }
