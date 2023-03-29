@@ -18,6 +18,9 @@ public class UploadFileServiceImpl implements UploadFileService {
         if(!Objects.equals(file.getContentType(), "text/plain")){
             throw new ValidationException("Only text file are allowed");
         }
+        if(bankName == null || bankName.isEmpty() || bankName.trim().isEmpty()){
+            throw new ValidationException("Bank name should be not empty");
+        }
         try {
             String contents = new String(file.getBytes());
             String[] lines = contents.split("\\r?\\n");
